@@ -11,6 +11,9 @@
 <img src="./images/logo.jpeg" alt="logo" width="100"/>
 
 ----
+## Why a Fork of a fork?
+
+This library is currently used for json rendering and not for html templates. Hence, we patched it to invoke json marshaling instead of relying on golang's `Stringer` interface.
 
 ## Why a Fork?
 
