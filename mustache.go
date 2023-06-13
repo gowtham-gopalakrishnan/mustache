@@ -700,11 +700,18 @@ func (tmpl *Template) renderElement(element interface{}, contextChain []interfac
 			if elem.raw {
 				fmt.Fprint(buf, val.Interface())
 			} else {
-				b, err := json.Marshal(val.Interface())
-				if err != nil {
-					return err
+				switch reflect.ValueOf(val.Interface()).Kind() {
+				case reflect.Map, reflect.Array:
+					b, err := json.Marshal(val.Interface())
+					if err != nil {
+						return err
+					}
+					_, _ = buf.Write(b)
+				default:
+					s := fmt.Sprint(val.Interface())
+					_, _ = buf.Write([]byte(tmpl.escape(s)))
 				}
-				_, _ = buf.Write(b)
+
 			}
 		}
 	case *sectionElement:
