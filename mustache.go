@@ -2,6 +2,7 @@ package mustache
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -699,8 +700,11 @@ func (tmpl *Template) renderElement(element interface{}, contextChain []interfac
 			if elem.raw {
 				fmt.Fprint(buf, val.Interface())
 			} else {
-				s := fmt.Sprint(val.Interface())
-				_, _ = buf.Write([]byte(tmpl.escape(s)))
+				b, err := json.Marshal(val.Interface())
+				if err != nil {
+					return err
+				}
+				_, _ = buf.Write(b)
 			}
 		}
 	case *sectionElement:
@@ -855,27 +859,27 @@ func ParseFilePartialsRaw(filename string, forceRaw bool, partials PartialProvid
 	return &tmpl, nil
 }
 
-// Render compiles a mustache template string and uses the the given data source
+// Render compiles a mustache template string and uses the given data source
 // - generally a map or struct - to render the template and return the output.
 func Render(data string, context ...interface{}) (string, error) {
 	return RenderRaw(data, false, context...)
 }
 
-// RenderRaw compiles a mustache template string and uses the the given data
+// RenderRaw compiles a mustache template string and uses the given data
 // source - generally a map or struct - to render the template and return the
 // output.
 func RenderRaw(data string, forceRaw bool, context ...interface{}) (string, error) {
 	return RenderPartialsRaw(data, nil, forceRaw, context...)
 }
 
-// RenderPartials compiles a mustache template string and uses the the given partial
+// RenderPartials compiles a mustache template string and uses the given partial
 // provider and data source - generally a map or struct - to render the template
 // and return the output.
 func RenderPartials(data string, partials PartialProvider, context ...interface{}) (string, error) {
 	return RenderPartialsRaw(data, partials, false, context...)
 }
 
-// RenderPartialsRaw compiles a mustache template string and uses the the given
+// RenderPartialsRaw compiles a mustache template string and uses the given
 // partial provider and data source - generally a map or struct - to render the
 // template and return the output.
 func RenderPartialsRaw(data string, partials PartialProvider, forceRaw bool, context ...interface{}) (string, error) {
@@ -928,7 +932,7 @@ func RenderInLayoutPartials(data string, layoutData string, partials PartialProv
 }
 
 // RenderFile loads a mustache template string from a file and compiles it, and
-// then uses the the given data source - generally a map or struct - to render
+// then uses the given data source - generally a map or struct - to render
 // the template and return the output.
 func RenderFile(filename string, context ...interface{}) (string, error) {
 	tmpl, err := ParseFile(filename)
@@ -939,7 +943,7 @@ func RenderFile(filename string, context ...interface{}) (string, error) {
 }
 
 // RenderFileInLayout loads a mustache template string and layout "wrapper"
-// template string from files and compiles them, and  then uses the the given
+// template string from files and compiles them, and then uses the given
 // data source - generally a map or struct - to render the compiled templates
 // and return the output.
 func RenderFileInLayout(filename string, layoutFile string, context ...interface{}) (string, error) {
